@@ -1,3 +1,10 @@
-game states:
-title
-game
+### game logic ###
+
+game state: title screen
+play button
+instructions
+options (? do there need to be any lol)
+
+game state: play
+logic cycle: clear screen > process input > redraw elements > wait for next input
+

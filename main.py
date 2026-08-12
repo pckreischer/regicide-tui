@@ -1,65 +1,39 @@
 import curses
 import card
 
-cards = []
-selected = 0
+deck = card.generate_deck()
+selected = 0 
 
-def generate_card(rank, suit):
-    if len(rank) == 2:
-        return [
-        "╭─────╮",
-        f"│ {rank}{suit} │",
-        "│     │",
-        "│     │",
-        "╰─────╯"
-    ]
-    else:
-        return [
-        "╭─────╮",
-        f"│ {rank} {suit} │",
-        "│     │",
-        "│     │",
-        "╰─────╯"
-    ]
+hand = []
 
-def draw_sprite(stdscr, sprite, top, left):
-    for i, row in enumerate(sprite):
-        stdscr.addstr(top + i, left, row)
+def newHand():
+    hand.clear()
+    i = 0
+    while i < 8: # hardcoded hand size
+        hand.append(deck.pop())
+        i += 1
+
+def renderHand(stdscr, sh, sw):
+    left = (sw // 2) - (4 * 6) - 3 # more hardcoded hand size
+    for card_obj in hand:
+        card_obj.draw(stdscr, sh // 2, left)
+        left += 8
+    stdscr.refresh()
 
 def main(stdscr):
     # Hide the blinking cursor
     curses.curs_set(0)
     # Don't wait for Enter — read keys immediately
-    stdscr.nodelay(True)
+    # stdscr.nodelay(True)
     # Let getch() understand arrow keys
     stdscr.keypad(True)
 
     sh, sw = stdscr.getmaxyx()  # screen height, width
-    y, x = sh // 2, sw // 2      # player start position
 
-    # 
+    newHand()
+    renderHand(stdscr, sh, sw)
 
-    while True:
-        stdscr.clear()
-        draw_sprite(stdscr, generate_card("10", "S"), y, x)
-        stdscr.addstr(0, 0, "Arrow keys to move, 'q' to quit")
-        stdscr.refresh()
+    stdscr.getkey()
 
-
-        ## resolve inputs
-        key = stdscr.getch()
-
-        if key == curses.KEY_UP and y > 1:
-            y -= 1
-        elif key == curses.KEY_DOWN and y < sh - 1:
-            y += 1
-        elif key == curses.KEY_LEFT and x > 0:
-            x -= 1
-        elif key == curses.KEY_RIGHT and x < sw - 1:
-            x += 1
-        if key == ord('q'):
-            break
-
-        curses.napms(30)  # small delay so it's not maxing out CPU
 
 curses.wrapper(main)

@@ -1,40 +1,47 @@
-from dataclasses import dataclass
 import random
+import curses
 
-RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-SUITS = ['Spades', 'Hearts', 'Diamonds', 'Clubs']
-RANK_VALUES = {
-    'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
-    '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 15, 'K': 20
-}
+CARD_RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+CARD_SUITS = {"Spades": "♤", "Hearts": "♡", "Clubs": "♧", "Diamonds": "♢"}
+#CARD_SUITS = {"Spades": "♠", "Hearts": "♥", "Clubs": "♣", "Diamonds": "♦"}
 
-@dataclass(frozen=True, order=True)
+def generate_deck():
+    deck = []
+    for suit in CARD_SUITS:
+        for rank in CARD_RANKS:
+            deck.append(Card(rank, suit))
+    random.shuffle(deck)
+    return deck
+
 class Card:
-    rank: str
-    suit: str
 
-    def __post_init__(self):
-        pass  # frozen dataclass auto-generates __eq__, __repr__
-
-    @property
-    def value(self):
-        return RANK_VALUES[self.rank]
+    def __init__(self, rank, suit):
+        self.rank = rank
+        self.suit_name = suit
+        self.suit_icon = CARD_SUITS[suit]
 
     def __str__(self):
-        return f"{self.rank} of {self.suit}"
+        return f"{self.rank} of {self.suit_name}"
 
-    @property
-    def short(self):
-        # e.g. "10♥", "KS", etc — whatever fits your display
-        suit_symbols = {'Spades': '♠', 'Hearts': '❤', 'Diamonds': '♦', 'Clubs': '♣'}
-        return f"{self.rank}{suit_symbols[self.suit]}"
+    def draw(self, stdscr, top, left):
 
-def build_deck():
-    return [Card(rank, suit) for suit in SUITS for rank in RANKS]
+        if len(self.rank) == 2:
+            self.sprite = [
+            "╭─────╮",
+            f"│ {self.rank}{self.suit_icon} │",
+            "│     │",
+            "│     │",
+            "╰─────╯"
+        ]
+        else:
+            self.sprite = [
+            "╭─────╮",
+            f"│ {self.rank} {self.suit_icon} │",
+            "│     │",
+            "│     │",
+            "╰─────╯"
+        ]
 
-deck = build_deck()
-random.shuffle(deck)
-
-print(deck[0])
-print(deck[0].value)  
-print(deck[0].short)
+        for i, row in enumerate(self.sprite):
+            stdscr.addstr(top + i, left, row)
+        
