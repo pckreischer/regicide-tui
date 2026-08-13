@@ -2,6 +2,7 @@ import random
 import curses
 
 CARD_RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+RANK_NAMES = {"A": "Ace", "J": "Jack", "Q": "Queen", "K": "King"}
 CARD_SUITS = {"Spades": "♤", "Hearts": "♡", "Clubs": "♧", "Diamonds": "♢"}
 #CARD_SUITS = {"Spades": "♠", "Hearts": "♥", "Clubs": "♣", "Diamonds": "♦"}
 
@@ -21,7 +22,8 @@ class Card:
         self.suit_icon = CARD_SUITS[suit]
 
     def __str__(self):
-        return f"{self.rank} of {self.suit_name}"
+        rank_name = RANK_NAMES.get(self.rank, self.rank)
+        return f"{rank_name} of {self.suit_name}"
 
     def draw(self, stdscr, top, left):
 
@@ -44,4 +46,7 @@ class Card:
 
         for i, row in enumerate(self.sprite):
             stdscr.addstr(top + i, left, row)
-        
+
+    # method to return a list of strings detailing the card value and effect
+    def generateStats(self):
+        return str(self)
