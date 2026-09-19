@@ -6,13 +6,26 @@ RANK_NAMES = {"A": "Ace", "J": "Jack", "Q": "Queen", "K": "King"}
 CARD_SUITS = {"Spades": "♤", "Hearts": "♡", "Clubs": "♧", "Diamonds": "♢"}
 #CARD_SUITS = {"Spades": "♠", "Hearts": "♥", "Clubs": "♣", "Diamonds": "♦"}
 
+# returns deck without face cards
 def generate_deck():
     deck = []
     for suit in CARD_SUITS:
-        for rank in CARD_RANKS:
+        # 0 - 9: number cards
+        for rank in CARD_RANKS[:9]:
             deck.append(Card(rank, suit))
     random.shuffle(deck)
     return deck
+
+# creates shuffled monarchy deck, random suits
+# but always jacks then queens then kings
+def generate_monarchy():
+    monarchy = [
+        Card(rank, suit)
+        # built in reverse so pop() works as expected
+        for rank in ("K", "Q", "J")
+        for suit in random.sample(list(CARD_SUITS), k = 4) # samples all of the suits
+    ]
+    return monarchy
 
 class Card:
 
@@ -48,5 +61,5 @@ class Card:
             stdscr.addstr(top + i, left, row)
 
     # method to return a list of strings detailing the card value and effect
-    def generateStats(self):
+    def generate_stats(self):
         return str(self)
