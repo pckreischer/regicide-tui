@@ -28,12 +28,15 @@ class GameState:
         'joker': card.Pile('Joker')
         }
 
-    def try_select_card(card_in):
+    def try_toggle_select(self, card_in):
         # todo: flesh out selection logic
-        self.selected_cards.add(card_in)
+        if self.is_selected(card_in):
+            self.selected_cards.remove(card_in)
+        else:
+            self.selected_cards.add(card_in)
         
     # takes the string key input from stdscr.getkey() and processes it
-    def handle_input(key):
+    def handle_input(self, key):
         if key == 'KEY_LEFT':
             self.cursor = max(0, self.cursor - 1)
         elif key == 'KEY_RIGHT':
@@ -41,11 +44,11 @@ class GameState:
             #gs_old['card_selected'] = min(len(gs_old['hand']) - 1, gs_old['card_selected'] + 1)
         elif key == 'z':
             if self.cursor < len(self.hand):
-                try_select_card(self.hand[self.cursor])
+                self.try_toggle_select(self.hand[self.cursor])
             else:
                 # todo: implement jokers xd
                 return 0
 
-    def is_selected(card):
+    def is_selected(self, card):
         return card in self.selected_cards
 

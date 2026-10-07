@@ -31,6 +31,7 @@ def generate_monarchy():
     return monarchy
 
 # returns list of stats based on current cards, face card, and attack turn
+# note: immunity logic should be handled before feeding values here
 def generate_selection_info(cards_in, face_in, attack_turn):
 
     if attack_turn:
@@ -40,24 +41,28 @@ def generate_selection_info(cards_in, face_in, attack_turn):
         # find totals in each suit
         for card in cards_in:
             match card.suit_name:
-                case 'Spades': values[0] += RANK_VALUES[card_in.rank]
-                case 'Hearts': values[1] += RANK_VALUES[card_in.rank]
-                case 'Clubs': values[2] += RANK_VALUES[card_in.rank]
-                case 'Diamonds': values[3] += RANK_VALUES[card_in.rank]
+                case 'Hearts': values[0] += RANK_VALUES[card.rank]
+                case 'Diamonds': values[1] += RANK_VALUES[card.rank]
+                case 'Clubs': values[2] += RANK_VALUES[card.rank]
+                case 'Spades': values[3] += RANK_VALUES[card.rank]
 
         # generate text
         info = []
-        if values[0] != 0: info.append(f'Blocks {values[0]} damage')
-        if values[1] != 0: info.append(f'Restores {values[1]} cards')
+        if values[0] != 0: 
+            if values[0] == 1: info.append(f'Restore 1 card')
+            else: info.append(f'Restores {values[0]} cards')
+        if values[1] != 0: 
+            if values[1] == 1: info.append(f'Draw 1 card')
+            else: info.append(f'Draw {values[1]} cards')
         if values[2] != 0: info.append(f'Deals {values[2]} damage')
-        if values[3] != 0: info.append(f'Blocks {values[0]} damage')
+        if values[3] != 0: info.append(f'Shields {values[3]} attack')
 
     else:
         for card in cards_in:
-            total += RANK_VALUES[card_in.rank]
+            total += RANK_VALUES[card.rank]
         info.append(f'Block {total} damage')
 
-    info.append(card_in.__str__())
+    #info.append(cards_in.__str__())
     return info
 
 class Card:

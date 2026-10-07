@@ -63,8 +63,12 @@ def new_hand():
         i += 1
     return hand
 
+def render_debug(stdscr):
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+    stdscr.addstr(3, 10, str(gs.cursor), curses.color_pair(1))
+
 # function that draws cards in your hand, as well as jokers
-def render_hand2(stdscr, region):
+def render_hand(stdscr, region):
     h_offset = 0
     # rendering individual cards
     for i in range(len(gs.hand)):
@@ -77,42 +81,22 @@ def render_hand2(stdscr, region):
     # actually we'll have another function for that
     #gs.piles['joker'].draw(stdscr, region['top'], region ['left'])
     # render cursor
-    cursor_offset = 0
-    if gs.is_selected(gs.hand[gs.cursor]): cursor_offset = -3
-    stdscr.addstr(region['top'] - cursor_offset, region['left'] + (card.CARD_WIDTH // 2) + h_offset, '▼') # more hardcoded card size shenanigans but its ok
+    select_offset = 0
+    if gs.is_selected(gs.hand[gs.cursor]): select_offset = 2
+    stdscr.addstr(region['top'] - 1 - select_offset, region['left'] + (card.CARD_WIDTH // 2) + (gs.cursor * card.CARD_WIDTH), '▼') # more hardcoded card size shenanigans but its ok
     # render card info
     card_stats = card.generate_selection_info(gs.selected_cards, gs.current_face, gs.attack_turn)
     v_offset = (len(card_stats))
     for stat in card_stats:
-        stdscr.addstr(region['top'] - 3 - v_offset, (region['left'] + 3) - (len(stat) // 2) + h_offset, stat)
+        #stdscr.addstr(region['top'] - 3 - v_offset, (region['left'] + 3) - (len(stat) // 2) + h_offset, stat)
+        stdscr.addstr(region['top'] - 3 - v_offset, region['left'] + (card.CARD_WIDTH // 2) + (gs.cursor * card.CARD_WIDTH) - (len(stat) // 2), stat)
         v_offset -= 1
-        
-
-# function that draws each card in the hand
-def render_hand(stdscr, region):
-    h_offset = 0
-    card_stats = card.generate_card_info(gs_old['hand'][gs_old['card_selected']], gs_old['current_face'], gs_old['attack_turn'])
-    for i in range(len(gs_old['hand'])):
-        if i == gs_old['card_selected']: # draw selected card up and with info
-            gs_old['hand'][i].draw(stdscr, region['top'] - 2, region['left'] + h_offset)
-            stdscr.addstr(region['top'] - 3, region['left'] + 3 + h_offset, '▼') # more hardcoded card size shenanigans but its ok
-            # todo: implement new card stat rendering
-
-            v_offset = (len(card_stats))
-            for stat in card_stats:
-                stdscr.addstr(region['top'] - 3 - v_offset, (region['left'] + 3) - (len(stat) // 2) + h_offset, stat)
-                v_offset -= 1
-
-            #card_stats = game_state['hand'][i].generate_stats()
-            #stdscr.addstr(region['top'] - 4, (region['left'] + 3) - (len(card_stats) // 2) + offset, card_stats)
-        else: 
-            gs_old['hand'][i].draw(stdscr, region['top'], region['left'] + h_offset)
-        h_offset += CARD_WIDTH
 
 # function that draws the current monarchy card
 def render_monarchy(stdscr, region):
     # face card name
     gs_old['current_face'].draw(stdscr, region['top'], region['left'])
+    
     card_name = str(gs_old['current_face'])
     stdscr.addstr(region['top'] - 2, (region['left'] + (CARD_WIDTH // 2)) - (len(card_name) // 2), card_name)
 
@@ -132,7 +116,8 @@ def update(stdscr):
     #render_draw_pile(stdscr, regions['deck'])
     #render_discard_pile(stdscr, regions['discard'])
     #render_monarchy(stdscr, regions['monarchy'])
-    render_hand2(stdscr, regions['hand'])
+    render_hand(stdscr, regions['hand'])
+    render_debug(stdscr)
 
     stdscr.refresh()
 
