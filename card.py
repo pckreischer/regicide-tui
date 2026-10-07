@@ -1,6 +1,6 @@
 import random
-import curses
 
+CARD_WIDTH = 7
 RANK_VALUES = {
     "A": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
     "J": 10, "Q": 15, "K": 20,
@@ -14,7 +14,7 @@ def generate_deck():
     deck = []
     for suit in CARD_SUITS:
         # 0 - 9: number cards
-        for rank in list(RANK_VALUES)[:9]:
+        for rank in list(RANK_VALUES)[:10]:
             deck.append(Card(rank, suit))
     random.shuffle(deck)
     return deck
@@ -30,24 +30,35 @@ def generate_monarchy():
     ]
     return monarchy
 
-# returns list of stats based on current card
-def generate_card_info(card_in, face_in, attack_turn):
-        info = []
-        info.append(card_in.__str__())
-        
-        # suit effects
-        if attack_turn:
-            match card_in.suit_name:
-                case 'Spades':
-                    info.append(f'Blocks {RANK_VALUES[card_in.rank]} damage')
-                case 'Hearts':
-                    info.append(f'Restores {RANK_VALUES[card_in.rank]} cards')
-                case 'Clubs':
-                    info.append(f'Deals {RANK_VALUES[card_in.rank] * 2} damage')
-                case 'Diamonds':
-                    info.append(f'Draws {RANK_VALUES[card_in.rank]} cards')
+# returns list of stats based on current cards, face card, and attack turn
+def generate_selection_info(cards_in, face_in, attack_turn):
 
-        return info
+    if attack_turn:
+        values = [0, 0, 0, 0]  
+        info = []
+
+        # find totals in each suit
+        for card in cards_in:
+            match card.suit_name:
+                case 'Spades': values[0] += RANK_VALUES[card_in.rank]
+                case 'Hearts': values[1] += RANK_VALUES[card_in.rank]
+                case 'Clubs': values[2] += RANK_VALUES[card_in.rank]
+                case 'Diamonds': values[3] += RANK_VALUES[card_in.rank]
+
+        # generate text
+        info = []
+        if values[0] != 0: info.append(f'Blocks {values[0]} damage')
+        if values[1] != 0: info.append(f'Restores {values[1]} cards')
+        if values[2] != 0: info.append(f'Deals {values[2]} damage')
+        if values[3] != 0: info.append(f'Blocks {values[0]} damage')
+
+    else:
+        for card in cards_in:
+            total += RANK_VALUES[card_in.rank]
+        info.append(f'Block {total} damage')
+
+    info.append(card_in.__str__())
+    return info
 
 class Card:
 
@@ -87,19 +98,31 @@ class Pile:
     def __init__(self, pile_type):
         self.pile_type = pile_type
 
-    def draw(self, stdscr, top, left, value):
+    def draw(self, stdscr, top, left, value = -1):
         self.sprite = []
-        self.sprite.extend([
-            "╭─────╮",
-            "│╲╱╲╱╲│╮",
-            "│╱╲╱╲╱││",
-            "│╲╱╲╱╲││",
-            "╰─────╯│",
-            " ╰─────╯",
-            # todo: qol feature where this icon changes when there's 1 or 0 cards left
-        ])
         self.sprite.append(self.pile_type)
-        self.sprite.append(f"({value}/40)") # note: hardcoded deck size (at least graphically)
+        match self.pile_type:
+            case 'Joker':
+                self.sprite.extend([
+                    "╭─────╮",
+                    "│  J  │╮",
+                    "│     ││",
+                    "│     ││",
+                    "╰─────╯│",
+                    " ╰─────╯",
+                    # todo: qol feature where this icon changes when there's 1 or 0 cards left
+                ])
+            case _:
+                self.sprite.extend([
+                    "╭─────╮",
+                    "│╲╱╲╱╲│╮",
+                    "│╱╲╱╲╱││",
+                    "│╲╱╲╱╲││",
+                    "╰─────╯│",
+                    " ╰─────╯",
+                    # todo: qol feature where this icon changes when there's 1 or 0 cards left
+                ])
+                self.sprite.append(f"({value}/40)") # note: hardcoded deck size (at least graphically)
         for i, row in enumerate(self.sprite):
             stdscr.addstr(top + i, left, row)
 
