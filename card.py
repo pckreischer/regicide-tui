@@ -13,7 +13,7 @@ CARD_SUITS = {"Spades": "♤", "Hearts": "♡", "Clubs": "♧", "Diamonds": "♢
 def generate_deck():
     deck = []
     for suit in CARD_SUITS:
-        # 0 - 9: number cards
+        # subset of A - 10
         for rank in list(RANK_VALUES)[:10]:
             deck.append(Card(rank, suit))
     random.shuffle(deck)
@@ -33,7 +33,6 @@ def generate_monarchy():
 # returns list of stats based on current cards, face card, and attack turn
 # note: immunity logic should be handled before feeding values here
 def generate_selection_info(cards_in, face_in, attack_turn):
-
     if attack_turn:
         values = [0, 0, 0, 0]  
         info = []
@@ -105,19 +104,31 @@ class Pile:
 
     def draw(self, stdscr, top, left, value = -1):
         self.sprite = []
-        self.sprite.append(self.pile_type)
         match self.pile_type:
             case 'Joker':
-                self.sprite.extend([
-                    "╭─────╮",
-                    "│  J  │╮",
-                    "│     ││",
-                    "│     ││",
-                    "╰─────╯│",
-                    " ╰─────╯",
-                    # todo: qol feature where this icon changes when there's 1 or 0 cards left
-                ])
+                self.sprite.append(" Jokers") 
+                if value == 2:
+                    self.sprite.extend([
+                        "╭─────╮",
+                        "│  J  │╮",
+                        "│     ││",
+                        "│     ││",
+                        "╰─────╯│",
+                        " ╰─────╯",
+                    ])
+                elif value == 1:
+                    self.sprite.extend([
+                        "        ",
+                        " ╭─────╮",
+                        " │  J  │",
+                        " │     │",
+                        " │     │",
+                        " ╰─────╯",
+                    ])
+                else:
+                    self.sprite.extend({""})
             case _:
+                self.sprite.append(self.pile_type) 
                 self.sprite.extend([
                     "╭─────╮",
                     "│╲╱╲╱╲│╮",

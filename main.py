@@ -19,14 +19,6 @@ gs_old = {
 
 gs = game.GameState()
 
-# function to setup all the state variables at game start
-def initialize():
-    gs_old['deck'] = card.generate_deck()
-    gs_old['hand'] = new_hand()
-    gs_old['monarchy_deck'] = card.generate_monarchy()
-    gs_old['current_face'] = gs_old['monarchy_deck'].pop()
-    gs_old['attack_turn'] = True
-
 # calculates where certain UI elements anchors should be placed,
 # returns dict of the regions
 def compute_regions(sh,sw):
@@ -48,8 +40,12 @@ def compute_regions(sh,sw):
             'left': sw - card.CARD_WIDTH - 5
         },
         'jokers': {
-            'top': sh - 8,
+            'top': sh - 9,
             'left': sw - card.CARD_WIDTH - 5
+        },
+        'attack_turn': {
+            'top': sh - 5,
+            'left': 5
         }
     }
 
@@ -77,13 +73,11 @@ def render_hand(stdscr, region):
         else:
             gs.hand[i].draw(stdscr, region['top'], region['left'] + h_offset)
         h_offset += card.CARD_WIDTH
-    # rendering jokers
-    # actually we'll have another function for that
-    #gs.piles['joker'].draw(stdscr, region['top'], region ['left'])
     # render cursor
-    select_offset = 0
-    if gs.is_selected(gs.hand[gs.cursor]): select_offset = 2
-    stdscr.addstr(region['top'] - 1 - select_offset, region['left'] + (card.CARD_WIDTH // 2) + (gs.cursor * card.CARD_WIDTH), '▼') # more hardcoded card size shenanigans but its ok
+    if gs.cursor < len(gs.hand):
+        select_offset = 0
+        if gs.is_selected(gs.hand[gs.cursor]): select_offset = 2
+        stdscr.addstr(region['top'] - 1 - select_offset, region['left'] + (card.CARD_WIDTH // 2) + (gs.cursor * card.CARD_WIDTH), '▼') # more hardcoded card size shenanigans but its ok
     # render card info
     card_stats = card.generate_selection_info(gs.selected_cards, gs.current_face, gs.attack_turn)
     v_offset = (len(card_stats))
@@ -92,19 +86,30 @@ def render_hand(stdscr, region):
         stdscr.addstr(region['top'] - 3 - v_offset, region['left'] + (card.CARD_WIDTH // 2) + (gs.cursor * card.CARD_WIDTH) - (len(stat) // 2), stat)
         v_offset -= 1
 
+def render_jokers(stdscr, region):
+    gs.piles['joker'].draw(stdscr, region['top'], region['left'], gs.jokers)
+    if gs.cursor >= len(gs.hand):
+        stdscr.addstr(region['top'] - 1, region['left'] + (card.CARD_WIDTH // 2), '▼')
+
 # function that draws the current monarchy card
 def render_monarchy(stdscr, region):
-    # face card name
-    gs_old['current_face'].draw(stdscr, region['top'], region['left'])
+    gs.current_face.draw(stdscr, region['top'], region['left'])
     
-    card_name = str(gs_old['current_face'])
-    stdscr.addstr(region['top'] - 2, (region['left'] + (CARD_WIDTH // 2)) - (len(card_name) // 2), card_name)
+    # face card name
+    card_name = str(gs.current_face)
+    stdscr.addstr(region['top'] - 2, (region['left'] + (card.CARD_WIDTH // 2)) - (len(card_name) // 2), card_name)
 
 def render_draw_pile(stdscr, region):
-    gs_old['piles']['draw'].draw(stdscr, region['top'], region['left'], len(gs_old['deck']))
+    gs.piles['draw'].draw(stdscr, region['top'], region['left'], len(gs.deck))
 
 def render_discard_pile(stdscr, region):
-    gs_old['piles']['discard'].draw(stdscr, region['top'], region['left'], len(gs_old['discard']))
+    gs.piles['discard'].draw(stdscr, region['top'], region['left'], len(gs.discard))
+
+def render_attack_turn(stdscr, region):
+    if gs.attack_turn:
+        stdscr.addstr(region['top'], region['left'], 'Turn: ATTACK')
+    else:
+        stdscr.addstr(region['top'], region['left'], 'Turn: DEFEND')
 
 # main rendering update function
 def update(stdscr):
@@ -113,10 +118,12 @@ def update(stdscr):
     regions = compute_regions(sh, sw)
 
     stdscr.erase()
-    #render_draw_pile(stdscr, regions['deck'])
-    #render_discard_pile(stdscr, regions['discard'])
-    #render_monarchy(stdscr, regions['monarchy'])
+    render_draw_pile(stdscr, regions['deck'])
+    render_discard_pile(stdscr, regions['discard'])
+    render_monarchy(stdscr, regions['monarchy'])
+    render_attack_turn(stdscr, regions['attack_turn'])
     render_hand(stdscr, regions['hand'])
+    render_jokers(stdscr, regions['jokers'])
     render_debug(stdscr)
 
     stdscr.refresh()
