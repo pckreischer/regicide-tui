@@ -29,6 +29,11 @@ class GameState:
         'joker': card.Pile('Joker')
         }
 
+    def get_total(cards_in):
+        result = 0
+        for c in cards_in:
+            result += c.rank
+
     def try_toggle_select(self, card_in):
         # todo: flesh out selection logic
         # deselect
@@ -36,24 +41,21 @@ class GameState:
             self.selected_cards.remove(card_in)
         # select
         else:
-            if self.selected_cards == 0: 
+            if len(self.selected_cards) == 0: 
                 self.selected_cards.add(card_in)
                 return
 
-            match card_in.rank:
+            value = card.RANK_VALUES[card_in.rank]
+            match value:
                 # animal companions (aces)
                 case 1:
                     if self.selected_cards <= 1:
                         self.selected_cards.add(card_in)
                 # combos
                 case 2 | 3 | 4 | 5:
-                    if self.selected_cards.__contains__(card_in.rank):
-                        return # pick up the logic later
-
-            
-
-            # combos
-            self.selected_cards.add(card_in)
+                    if self.selected_cards.__contains__(card_in) and \
+                       self.get_total(self.selected_cards) + value <= 10:
+                        self.selected_cards.add(card_in)
         
     # takes the string key input from stdscr.getkey() and processes it
     def handle_input(self, key):
